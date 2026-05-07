@@ -72,10 +72,11 @@ RUN wget -q https://github.com/conda-forge/miniforge/releases/latest/download/Mi
     && ${CONDA_DIR}/bin/conda clean -afy \
     && chown -R ${USERNAME}:${USERNAME} ${CONDA_DIR}
 
-# Initialize conda + mamba for both root (so `sudo` shells work) and vscode
+# Initialize conda for both root (so `sudo` shells work) and the vscode user.
+# mamba >= 2.0 removed `mamba init`; conda's shell hook is sufficient and mamba
+# picks it up automatically. (See https://mamba.readthedocs.io/ release notes.)
 RUN ${CONDA_DIR}/bin/conda init bash \
-    && ${CONDA_DIR}/bin/mamba init bash \
-    && su - ${USERNAME} -c "${CONDA_DIR}/bin/conda init bash && ${CONDA_DIR}/bin/mamba init bash"
+    && su - ${USERNAME} -c "${CONDA_DIR}/bin/conda init bash"
 
 USER ${USERNAME}
 WORKDIR /home/${USERNAME}
