@@ -7,7 +7,11 @@
 # Quadruped-PyMPC package in editable mode here (rather than baking these into
 # the image, which would prevent the source from being editable from the host).
 
-set -euo pipefail
+set -eo pipefail
+# NOTE: `set -u` is intentionally omitted. Conda's activate scripts (and the
+# ROS humble activate hooks shipped via robostack) reference unbound variables
+# such as $CONDA_BUILD, which would otherwise crash this script with
+# "unbound variable" the moment we `conda activate` the env.
 
 # devcontainers mount the workspace at /workspaces/<repo>; fall back to PWD if
 # the variable isn't set (e.g. when running this script outside DevPod).
