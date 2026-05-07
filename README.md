@@ -33,6 +33,47 @@ Real-world deployment via:
 
 See [here](https://github.com/iit-DLSLab/Quadruped-PyMPC/blob/main/README_install.md).
 
+### DevPod (containerized dev environment)
+
+A [DevPod](https://devpod.sh/) configuration is provided in [`.devcontainer/`](./.devcontainer) for spinning up a reproducible CUDA-enabled development container with Mamba, acados, and X11 forwarding pre-configured.
+
+**Prerequisites:**
+
+1. [Docker](https://docs.docker.com/engine/install/)
+2. [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
+3. [DevPod CLI](https://devpod.sh/docs/getting-started/install#install-devpod-cli) with the Docker provider:
+   ```bash
+   devpod provider add docker
+   devpod provider use docker
+   ```
+4. Allow the container to talk to your X server (run once per host login):
+   ```bash
+   xhost +local:docker
+   ```
+
+**Quick start:**
+
+```bash
+git clone https://github.com/iit-DLSLab/Quadruped-PyMPC.git
+cd Quadruped-PyMPC
+devpod up . --ide vscode      # or: --ide openvscode / --ide none
+```
+
+The first launch builds the image, creates the `quadruped_pympc_ros2_humble_env` conda environment via Mamba, builds acados, and installs Quadruped-PyMPC in editable mode. Subsequent launches reuse the built image.
+
+**Verifying GPU + GUI forwarding:**
+
+Inside the container shell:
+
+```bash
+nvidia-smi          # GPU passthrough
+glxinfo | head      # OpenGL via X11
+xeyes               # any GUI window should appear on your host display
+python3 simulation/simulation.py
+```
+
+See [`.devcontainer/devcontainer.json`](./.devcontainer/devcontainer.json) and [`.devcontainer/Dockerfile`](./.devcontainer/Dockerfile) to customize the environment.
+
 
 ## Citing this work
 
