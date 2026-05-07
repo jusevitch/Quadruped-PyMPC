@@ -67,27 +67,41 @@ fi
 conda activate "${ENV_NAME}"
 
 # ---------------------------------------------------------------------------
-# Build acados
+# Build acados (idempotent: skip cmake/make if libacados is already installed,
+# skip the editable pip install if acados_template is already importable)
 # ---------------------------------------------------------------------------
 ACADOS_DIR="${WORKSPACE_DIR}/quadruped_pympc/acados"
 if [ -d "${ACADOS_DIR}" ]; then
-    echo "--- Building acados ---"
-    mkdir -p "${ACADOS_DIR}/build"
-    (
-        cd "${ACADOS_DIR}/build"
-        cmake -DACADOS_WITH_SYSTEM_BLASFEO:BOOL=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ..
-        make install -j"$(nproc)"
-    )
-    pip install -e "${ACADOS_DIR}/interfaces/acados_template"
+    if ls "${ACADOS_DIR}/lib/"libacados.* >/dev/null 2>&1; then
+        echo "--- acados C library already built; skipping cmake/make ---"
+    else
+        echo "--- Building acados ---"
+        mkdir -p "${ACADOS_DIR}/build"
+        (
+            cd "${ACADOS_DIR}/build"
+            cmake -DACADOS_WITH_SYSTEM_BLASFEO:BOOL=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ..
+            make install -j"$(nproc)"
+        )
+    fi
+
+    if pip show acados_template >/dev/null 2>&1; then
+        echo "--- acados_template already installed; skipping pip install ---"
+    else
+        pip install -e "${ACADOS_DIR}/interfaces/acados_template"
+    fi
 else
     echo "WARNING: acados submodule not found at ${ACADOS_DIR}; skipping build."
 fi
 
 # ---------------------------------------------------------------------------
-# Install Quadruped-PyMPC itself in editable mode
+# Install Quadruped-PyMPC itself in editable mode (idempotent)
 # ---------------------------------------------------------------------------
-echo "--- pip install -e . ---"
-pip install -e "${WORKSPACE_DIR}"
+if pip show quadruped_pympc >/dev/null 2>&1; then
+    echo "--- quadruped_pympc already installed; skipping pip install -e . ---"
+else
+    echo "--- pip install -e . ---"
+    pip install -e "${WORKSPACE_DIR}"
+fi
 
 # ---------------------------------------------------------------------------
 # Developer tools: tmux + Claude Code
