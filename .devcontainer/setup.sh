@@ -90,6 +90,26 @@ echo "--- pip install -e . ---"
 pip install -e "${WORKSPACE_DIR}"
 
 # ---------------------------------------------------------------------------
+# Developer tools: tmux + Claude Code
+# ---------------------------------------------------------------------------
+if ! command -v tmux >/dev/null 2>&1; then
+    echo "--- Installing tmux ---"
+    sudo DEBIAN_FRONTEND=noninteractive apt-get update
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tmux
+else
+    echo "--- tmux already installed ---"
+fi
+
+if ! command -v claude >/dev/null 2>&1; then
+    echo "--- Installing Claude Code ---"
+    curl -fsSL https://claude.ai/install.sh | bash
+else
+    echo "--- Claude Code already installed ---"
+fi
+# Claude Code's native installer drops `claude` into ~/.local/bin; the PATH
+# export is added below alongside the other persistent shell settings.
+
+# ---------------------------------------------------------------------------
 # Persistent shell configuration
 # ---------------------------------------------------------------------------
 BASHRC="${HOME}/.bashrc"
@@ -98,6 +118,7 @@ add_line() {
     grep -qxF "${line}" "${BASHRC}" 2>/dev/null || echo "${line}" >> "${BASHRC}"
 }
 
+add_line 'export PATH="$HOME/.local/bin:$PATH"'
 add_line "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:\"${ACADOS_DIR}/lib\""
 add_line "export ACADOS_SOURCE_DIR=\"${ACADOS_DIR}\""
 add_line "conda activate ${ENV_NAME}"
